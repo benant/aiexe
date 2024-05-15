@@ -139,7 +139,7 @@ import os from 'os';
     // } catch { }
     let perl_interpreter;
     try {
-        perl_interpreter = await which_node();
+        perl_interpreter = await which_perl();
     } catch { }
     const pwd = process.cwd();
     function getFileExtension(){
@@ -324,7 +324,6 @@ import os from 'os';
         if (cmd.indexOf(' ') > -1) process.exit(1);
         if (isWindows()) {
             let { stdout } = await execAdv(`(Get-Command ${cmd}).Source`)
-            // console.log('which stdout:', stdout);
             return stdout.trim();
         } else {
             return await new Promise(resolve => {
@@ -428,6 +427,19 @@ import os from 'os';
     }
     async function which_jshint() {
         let list = ['jshint'];
+        for (let i = 0; i < list.length; i++) {
+            let name = list[i];
+            let ppath = await which(name);
+            if (!ppath) continue;
+            // if (ppath.indexOf(' ') > -1) throw ppath;
+            // let str = `${Math.random()}`;
+            // let { stdout } = await execAdv(`echo '${str}'`, false);
+            // if (stdout.trim() === str) return ppath;
+            return ppath;
+        }
+    }
+    async function which_perl() {
+        let list = ['perl'];
         for (let i = 0; i < list.length; i++) {
             let name = list[i];
             let ppath = await which(name);
@@ -598,7 +610,6 @@ import os from 'os';
                 if (!python_interpreter_) throw new Error('Python Interpreter Not Found');
                 let pythonCmd = `${python_interpreter_} ${addslashes(command)}`;
                 let runcmd = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${pythonCmd}" < nul`;
-                // console.log(runcmd);
                 child = shelljs.exec(runcmd, { async: true, silent: true });
             } else {
                 let pythonInterpreterPath = ''
@@ -614,7 +625,6 @@ import os from 'os';
                 const python_interpreter_ = pythonInterpreterPath || '';
                 if (!python_interpreter) throw new Error('Python Interpreter Not Found');
                 let runcmd = `"${bash_path}" -c "source "${PYTHON_VENV_PATH}/bin/activate" && "${python_interpreter_}" ${addslashes(command)} < /dev/null"`;
-                // console.log(runcmd)
                 child = shelljs.exec(runcmd, { async: true, silent: true });
             }
             let stdout = [];
@@ -651,6 +661,8 @@ import os from 'os';
                 return await shell_exec_bash(python_code);
             case 'php':
                 return await shell_exec_php(python_code);
+            case 'perl':
+                return await shell_exec_perl(python_code);
             case 'python': default:
                 return await shell_exec_python(python_code);
         }
@@ -845,8 +857,11 @@ import os from 'os';
                 ].find(fs.existsSync);
                 const bash_interpreter_ = bashInterpreterPath || '';
                 if (!bash_interpreter_) throw new Error('BASH Interpreter Not Found');
-                let bashCmd = `${bash_interpreter_} '${scriptPath}'`;
-                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${bashCmd}" < nul`, { async: true, silent: true });
+                // let bashCmd = `${bash_interpreter_} '${scriptPath}'`;
+                // child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${bashCmd}" < nul`, { async: true, silent: true });
+                let bashCmd = `'${bash_interpreter_}' '${scriptPath}'`;
+                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "&{'${activateCmd}'; & ${bashCmd} }" < nul`, { async: true, silent: true });
+
             } else {
                 const bashInterpreterPath = [
                     `${PYTHON_VENV_PATH}/bin/bash`,
@@ -891,8 +906,8 @@ import os from 'os';
                 ].find(fs.existsSync);
                 const php_interpreter_ = phpInterpreterPath || '';
                 if (!php_interpreter_) throw new Error('PHP Interpreter Not Found');
-                let phpCmd = `${php_interpreter_} '${scriptPath}'`;
-                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${phpCmd}" < nul`, { async: true, silent: true });
+                let phpCmd = `'${php_interpreter_}' '${scriptPath}'`;
+                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "&{'${activateCmd}'; & ${phpCmd} }" < nul`, { async: true, silent: true });
             } else {
                 const phpInterpreterPath = [
                     `${PYTHON_VENV_PATH}/bin/php`,
@@ -923,13 +938,14 @@ import os from 'os';
     }
     async function shell_exec_perl(perl_code) {
         let response = await new Promise(resolve => {
-            let scriptPath = `${PYTHON_VENV_PATH}/._code.perl`;
+            let scriptPath = `${PYTHON_VENV_PATH}/._code.pl`;
             let warninglist = [];
             let modulelist = [];
             let perl_code_ = perl_code;
             fs.writeFileSync(scriptPath, perl_code_);
             let child;
             if (isWindows()) {
+                scriptPath = scriptPath.replace('/', '\\');
                 let activateCmd = `${PYTHON_VENV_PATH}\\Scripts\\Activate.ps1`;
                 const perlInterpreterPath = [
                     `${PYTHON_VENV_PATH}\\Scripts\\perl.exe`,
@@ -937,8 +953,8 @@ import os from 'os';
                 ].find(fs.existsSync);
                 const perl_interpreter_ = perlInterpreterPath || '';
                 if (!perl_interpreter_) throw new Error('Perl Interpreter Not Found');
-                let perlCmd = `${perl_interpreter_} '${scriptPath}'`;
-                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${perlCmd}" < nul`, { async: true, silent: true });
+                let perlCmd = `'${perl_interpreter_}' '${scriptPath}'`;
+                child = shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "&{'${activateCmd}'; & ${perlCmd} }" < nul`, { async: true, silent: true });
             } else {
                 const perlInterpreterPath = [
                     `${PYTHON_VENV_PATH}/bin/perl`,
@@ -1122,7 +1138,6 @@ import os from 'os';
             let tempMessageForIndicator = oraBackupAndStopCurrent();
             let indicator = ora((`Requesting ${chalk.bold(GROQ_MODEL)}`)).start()
             try {
-                // console.log('groqChat messages:', messages)
                 completion = await axiosPostWrap('https://api.groq.com/openai/v1/chat/completions', { model: GROQ_MODEL, messages, }, {
                     headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' }
                 });
@@ -1391,7 +1406,7 @@ import os from 'os';
                             break;
                         }
                     }
-                }  else if (USE_LLM === 'groq') {
+                } else if (USE_LLM === 'groq') {
                     if (debugMode) debugMode.leave('AIREQ', messages);
                     try {
                         python_code = await aiChat(messages);
@@ -1768,7 +1783,7 @@ import os from 'os';
     }
     async function code_validator_python(filepath) { // OK
         if (isWindows()) {
-            let pythonCmd = `'${python_interpreter}' -m py_compile '${filepath}'`;
+            let pythonCmd = `${python_interpreter} -m py_compile '${filepath}'`;
             let activateCmd = `${PYTHON_VENV_PATH}\\Scripts\\Activate.ps1`;
             return await new Promise(resolve => {
                 shelljs.exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& '${activateCmd}'}; ${pythonCmd}" < nul`, { silent: true }, function (code, stdout, stderr) {
@@ -1946,7 +1961,6 @@ import os from 'os';
             print('* Python is not installed in your system. Python is required to use this app');
             throw new Error('Python is not installed in your system. Python is required to use this app');
         }
-        console.error('PYTHON_VENV_PATH:', PYTHON_VENV_PATH)
         if (!await isKeyInConfig('PYTHON_VENV_PATH')) {
             if (pythonPath) {
                 let path = await venvCandidatePath();
@@ -2609,7 +2623,6 @@ import os from 'os';
                             let index = readlineSync.keyInSelect(mode, `Enter your choice`, { cancel: false });
                             if (index === 1) { askforce = ''; _executed_code=''; continue; } //Re-Generate Code
                             if (index === 2) { // Modify Prompt
-                                _executed_code=''; 
                                 print(`Previous prompt: ${chalk.bold(getPrompt())}`);
                                 let request = (await ask_prompt_text(`Modify Prompt`)).trim();
                                 if (request) {
@@ -2622,12 +2635,12 @@ import os from 'os';
                                 } else {
                                     print('There are no changes.\nRequesting again with the original request.');
                                 }
+                                _executed_code=''; 
                                 askforce = '';
                                 continue;
                             }
                             if (index === 3) { break; } // Quit
                             if (index === 4) { // Save Code & Quit
-                                const _code = _executed_code ? _executed_code : python_code;
                                 const currentTime = new Date().toISOString().replace(/[-:T]/g, '');// 현재 시간을 문자열로 변환
                                 const fileName = `${currentTime}.${getFileExtension()}`;// 파일명 생성
                                 const codeFolderPath = path.join(__dirname, './code'); // 폴더 경로 생성
@@ -2637,6 +2650,7 @@ import os from 'os';
                                 const filePath = path.join(codeFolderPath, fileName);// 파일 경로 생성
                                 let _llm_info = USE_LLM;
                                 _llm_info = getModel() ? _llm_info+'('+getModel()+')' : _llm_info;
+                                const _code = _executed_code ? _executed_code : python_code;
                                 const save_code = [`# GENERATED CODE for:`,
                                     `# ${mission}`,
                                     ``,

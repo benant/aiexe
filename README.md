@@ -1,3 +1,8 @@
+# TODO
+
+* 코드 실행 후 재생성시 코드 생성 이상하게 되는 오류 수정 필요.
+
+
 # aiexe
 
 Welcome to aiexe, the cutting-edge command-line interface (CLI) tool that integrates powerful AI capabilities directly into your terminal. Designed for developers, tech enthusiasts, and anyone interested in AI-powered automation, aiexe provides an easy-to-use yet robust platform for executing complex tasks with just a few commands. Harness the power of OpenAI's GPT models, Anthropic's Claude models, Ollama's versatile llama3 models, and Gemini models to boost your productivity and enhance your decision-making processes.
