@@ -2577,7 +2577,6 @@ import os from 'os';
                         } catch (e) {
                             break;
                         }
-                        console.log('python_code:',python_code)
                         let resForOpi = askforce === 'ask_opinion';
                         if (resForOpi) { askforce = ''; }
 
