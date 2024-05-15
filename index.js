@@ -876,7 +876,6 @@ import os from 'os';
         return response;
     }
     async function shell_exec_php(php_code) {
-        console.log('shell_exec_php php_code:',php_code)
         let response = await new Promise(resolve => {
             let scriptPath = `${PYTHON_VENV_PATH}/._code.php`;
             let warninglist = [];
