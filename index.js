@@ -324,7 +324,7 @@ import os from 'os';
         if (cmd.indexOf(' ') > -1) process.exit(1);
         if (isWindows()) {
             let { stdout } = await execAdv(`(Get-Command ${cmd}).Source`)
-            stdout = stdout.substring(0, stdout.indexOf(cmd+'.')+cmd.length); // jshint.ps1 처럼 exe 파일이 아닌 다른것을 알려주는 경우가있어  확장자를 제거함.
+            // console.log('which stdout:', stdout);
             return stdout.trim();
         } else {
             return await new Promise(resolve => {
@@ -876,6 +876,7 @@ import os from 'os';
         return response;
     }
     async function shell_exec_php(php_code) {
+        console.log('shell_exec_php php_code:',php_code)
         let response = await new Promise(resolve => {
             let scriptPath = `${PYTHON_VENV_PATH}/._code.php`;
             let warninglist = [];
