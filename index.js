@@ -164,6 +164,8 @@ import os from 'os';
     }
     function getProgramLanguageCode(){
         switch(SELECTED_LANGUAGE) {
+            case 'batch':
+                return 'bat';
             case 'nodejs':
                 return 'javascript';
             default:
@@ -1487,7 +1489,7 @@ import os from 'os';
             return GROQ_MODEL;
         }
     }
-    function nakeFence(airesponsetext, list = ['python3', 'python2', 'python', 'py', 'php', 'sh', 'bat', 'java', 'c', 'js', 'pl', 'perl', '']) {
+    function nakeFence(airesponsetext, list = ['python3', 'python2', 'python', 'py', 'php', 'sh', 'bat', 'batch', 'java', 'c', 'js', 'pl', 'perl', '']) {
         if ((typeof airesponsetext) !== 'string') return '';
         if (airesponsetext.trim() === '') return '';
         if (list.filter(a => a === '').length === 0) list.push('');
@@ -1585,7 +1587,7 @@ import os from 'os';
             }
         }
         if (!startPadding) {
-            let list = ['python3', 'python2', 'python', 'py', 'php', 'bash', 'javascript', 'nodejs', 'batch', 'c', 'java', 'perl', 'pl', '']; // 
+            let list = ['python3', 'python2', 'python', 'py', 'php', 'bash', 'javascript', 'nodejs', 'bat', 'batch', 'c', 'java', 'perl', 'pl', '']; // 
             list = [...list.map(a => a.toLowerCase()), ...list.map(a => a.toUpperCase())];
             for (let f = 0; f < list.length; f++) {
                 let word = list[f];
@@ -2100,7 +2102,7 @@ import os from 'os';
         if (!SELECTED_LANGUAGE) {
             print(chalk.bold('Which language do you prefer?'))
             continousNetworkTryCount = 0;
-            let mode = ['Python', 'PHP', 'nodeJs', 'Perl', 'C', 'JAVA']; // , 'BASH', 'Batch', 'Visual Basic'
+            let mode = ['Python', 'PHP', 'nodeJs', 'Perl', 'C', 'JAVA', 'BASH', 'Batch']; // , 'Visual Basic'
             let index = readlineSync.keyInSelect(mode, `Enter your choice`, { cancel: false });
             SELECTED_LANGUAGE = mode[index].toLowerCase();
         }
@@ -2594,7 +2596,7 @@ import os from 'os';
                         let resForOpi = askforce === 'ask_opinion';
                         if (resForOpi) { askforce = ''; }
 
-                        correct_code = true
+                        correct_code = true // 매뉴 항상 표시하기
                         if (!correct_code) {
                             if (result2.raw) {
                                 history.forEach(addMessages);
